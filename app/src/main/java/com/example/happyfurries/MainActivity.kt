@@ -21,6 +21,7 @@ class MainActivity : ComponentActivity() {
             HappyFurriesTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
+                        
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -28,5 +29,9 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+class Greeting(name: String, modifier: Modifier) {
+
 }
 
