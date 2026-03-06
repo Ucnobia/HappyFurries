@@ -8,10 +8,11 @@ android {
     namespace = "com.example.happyfurries"
     compileSdk = 36
 
+
     defaultConfig {
         applicationId = "com.example.happyfurries"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
