@@ -5,4 +5,6 @@ object Routes {
     const val WELCOME = "welcome"
     const val PET_FORM = "pet_form"
     const val CALENDAR = "calendar"
+    const val ADD_PET = "add_pet"
+
 }
