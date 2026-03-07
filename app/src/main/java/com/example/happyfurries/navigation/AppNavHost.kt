@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.happyfurries.ui.calendarscreen.CalendarScreen
 import com.example.happyfurries.ui.petform.PetFormScreen
 import com.example.happyfurries.ui.splash.SplashScreen
 import com.example.happyfurries.ui.welcome.WelcomeScreen
@@ -12,30 +13,33 @@ import com.example.happyfurries.ui.welcome.WelcomeScreen
 fun AppNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "splash"
+        startDestination = Routes.SPLASH
     ) {
-        composable("splash") {
+        composable(Routes.SPLASH) {
             SplashScreen {
-                navController.navigate("welcome") {
-                    popUpTo("splash") { inclusive = true }
+                navController.navigate(Routes.WELCOME) {
+                    popUpTo(Routes.SPLASH) { inclusive = true }
                 }
             }
         }
 
-        composable("welcome") {
+        composable(Routes.WELCOME) {
             WelcomeScreen {
-                navController.navigate("pet_form")
-                //Ruta a pantalla de formulario
-
+                navController.navigate(Routes.PET_FORM)
             }
         }
 
-        composable("pet_form") {
+        composable(Routes.PET_FORM) {
             PetFormScreen {
-                navController.navigate("main_calendar")
+                navController.navigate(Routes.CALENDAR)
             }
+        }
+
+        composable(Routes.CALENDAR) {
+            CalendarScreen()
         }
     }
 }
+
 
 
