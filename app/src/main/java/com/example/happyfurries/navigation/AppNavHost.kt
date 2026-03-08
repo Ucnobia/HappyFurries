@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.happyfurries.ui.addpet.AddPetScreen
 import com.example.happyfurries.ui.calendarscreen.CalendarScreen
 import com.example.happyfurries.ui.petform.PetFormScreen
 import com.example.happyfurries.ui.splash.SplashScreen
@@ -35,9 +36,15 @@ fun AppNavHost(navController: NavHostController) {
             }
         }
 
-        composable(Routes.CALENDAR) {
-            CalendarScreen()
+        composable(Routes.ADD_PET) {
+            AddPetScreen()
         }
+
+        composable(Routes.CALENDAR) {
+            CalendarScreen(navController)
+        }
+
+
     }
 }
 
