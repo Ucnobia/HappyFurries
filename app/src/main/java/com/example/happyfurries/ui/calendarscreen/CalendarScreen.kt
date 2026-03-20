@@ -1,5 +1,6 @@
 package com.example.happyfurries.ui.calendarscreen
 //pantalla principal
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -22,8 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.happyfurries.R
 import com.example.happyfurries.navigation.Routes
 
 @Composable
@@ -64,11 +67,14 @@ fun CalendarScreen(navController: NavController) {
 }
 
 @Composable
-fun AppLogoHeader() {
-    Text(
-        text = "Happy furries",
-        style = MaterialTheme.typography.titleMedium
+fun AppLogoHeader (){
+    //Logo en drawable
+    Image(
+        painter = painterResource(id = R.drawable.logobig),
+        contentDescription = "Logo",
+        modifier = Modifier.size(40.dp)
     )
+
 }
 
 @Composable
@@ -77,10 +83,15 @@ fun CalendarView() {
         modifier = Modifier
             .fillMaxWidth()
             .height(250.dp)
-            .background(Color.LightGray),
+            .clip(MaterialTheme.shapes.medium)
+            .background(Color(0xFFF5F5F5)),
         contentAlignment = Alignment.Center
     ){
-        Text("Calendario")
+        Text(
+            text= "Calendario",
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.Gray
+        )
     }
 }
 
@@ -91,20 +102,28 @@ fun UpcomingEventsSection(){
     ){
         Text(
             text = "Proximos Eventos",
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.height(12.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(120.dp)
-                .background(Color(0xFFEFEFEF)),
+                .clip(MaterialTheme.shapes.medium)
+                .background(Color(0xFFF0F0F0)),
             contentAlignment = Alignment.Center
         ){
-            Text("Aqui apareceran los eventos")
+            Text(
+                text = "Proximos eventos",
+                color = Color.Gray
+            )
+
+
         }
     }
 }
+
+
 @Composable
 fun PetRow(
     pets: List<String>,
