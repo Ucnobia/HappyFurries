@@ -1,4 +1,4 @@
-package com.example.happyfurries.ui.petschedule
+package com.example.happyfurries.ui.pet
 // Pantalla eventos mascota
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

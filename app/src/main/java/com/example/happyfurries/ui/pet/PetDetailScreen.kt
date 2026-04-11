@@ -1,4 +1,4 @@
-package com.example.happyfurries.ui.petdetail
+package com.example.happyfurries.ui.pet
 //Pantalla para info de mascota
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

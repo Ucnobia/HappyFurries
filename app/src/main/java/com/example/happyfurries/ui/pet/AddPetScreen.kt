@@ -1,4 +1,4 @@
-package com.example.happyfurries.ui.addpet
+package com.example.happyfurries.ui.pet
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

@@ -1,4 +1,4 @@
-package com.example.happyfurries.ui.calendarscreen
+package com.example.happyfurries.ui.Main
 //pantalla principal
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,9 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,9 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.happyfurries.R
 import com.example.happyfurries.navigation.Routes
-import com.example.happyfurries.ui.calendar.CalendarState
-import com.example.happyfurries.ui.calendar.CalendarView
-import java.time.YearMonth
+import com.example.happyfurries.ui.calendar.Calendar
 
 @Composable
 fun CalendarScreen(navController: NavController) {
@@ -84,20 +79,10 @@ fun AppLogoHeader (){
 }
 
 @Composable
-fun Calendar() {
-    val state = remember {
-        mutableStateOf(
-            CalendarState(currentMonth = YearMonth.now())
-        )
-    }
-
-    CalendarView(
-        state = state.value,
-        onDateSelected = { date ->
-            state.value = state.value.copy(selectedDate = date)
-        }
-    )
+fun CalendarScreen() {
+    Calendar()
 }
+
 
 
 

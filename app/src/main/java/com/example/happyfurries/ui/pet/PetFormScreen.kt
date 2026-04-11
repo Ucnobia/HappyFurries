@@ -1,4 +1,4 @@
-package com.example.happyfurries.ui.petform
+package com.example.happyfurries.ui.pet
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

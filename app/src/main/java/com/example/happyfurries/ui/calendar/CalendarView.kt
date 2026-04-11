@@ -1,13 +1,11 @@
-package com.example.happyfurries.ui.calendar
+package com.example.happyfurries.ui.Main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,29 +18,50 @@ import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 
 @Composable
-
 fun CalendarView(
     state: CalendarState,
     onDateSelected: (LocalDate) -> Unit
 ) {
     val days = state.currentMonth.getDaysForCalendar()
 
-    Column {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        // Título del mes
         Text(
-            text = state.currentMonth.month.name.lowercase()
-                .replaceFirstChar { it.uppercase() } +
-                    " ${state.currentMonth.year}",
+            text = "${state.currentMonth.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${state.currentMonth.year}",
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(16.dp)
         )
+// Encabezado con los nombres de los días
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            val dayNames = listOf("L", "M", "X", "J", "V", "S", "D")
+            dayNames.forEach { day ->
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(vertical = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = day,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
 
+        // Cuadrícula de días
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(horizontal = 8.dp)
         ) {
-            items(days.size) { index ->
-                val date = days[index]
-
+            items(days) { date ->
                 Box(
                     modifier = Modifier
                         .aspectRatio(1f)

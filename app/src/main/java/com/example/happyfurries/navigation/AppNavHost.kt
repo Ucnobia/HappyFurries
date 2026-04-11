@@ -4,11 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.happyfurries.ui.addpet.AddPetScreen
-import com.example.happyfurries.ui.calendarscreen.CalendarScreen
-import com.example.happyfurries.ui.petdetail.PetDetailScreen
-import com.example.happyfurries.ui.petform.PetFormScreen
-import com.example.happyfurries.ui.petschedule.PetScheduleScreen
+import com.example.happyfurries.ui.pet.AddPetScreen
+import com.example.happyfurries.ui.Main.CalendarScreen
+import com.example.happyfurries.ui.pet.PetDetailScreen
+import com.example.happyfurries.ui.pet.PetFormScreen
+import com.example.happyfurries.ui.pet.PetScheduleScreen
 import com.example.happyfurries.ui.splash.SplashScreen
 import com.example.happyfurries.ui.welcome.WelcomeScreen
 
