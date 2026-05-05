@@ -15,11 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.happyfurries.ui.calendar.CalendarEvent
 import java.time.LocalDate
 
 @Composable
 fun CalendarView(
     state: CalendarState,
+    events: List<CalendarEvent>,
     onDateSelected: (LocalDate) -> Unit
 ) {
     val days = state.currentMonth.getDaysForCalendar()
@@ -62,7 +64,9 @@ fun CalendarView(
             modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             items(days) { date ->
-                Box(
+                //Eventos en el dia
+                val hasEvents = date != null && events.any { it.date == date }
+                Column (
                     modifier = Modifier
                         .aspectRatio(1f)
                         .padding(4.dp)
@@ -76,7 +80,8 @@ fun CalendarView(
                         .clickable(enabled = date != null) {
                             date?.let(onDateSelected)
                         },
-                    contentAlignment = Alignment.Center
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
                         text = date?.dayOfMonth?.toString() ?: "",
@@ -85,6 +90,16 @@ fun CalendarView(
                         else
                             MaterialTheme.colorScheme.onBackground
                     )
+                //Dibujar puntos para eventos
+                    if (hasEvents) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .padding(top = 2.dp)
+                                .background(Color.Black, CircleShape)
+                        )
+                    }
+
                 }
             }
         }

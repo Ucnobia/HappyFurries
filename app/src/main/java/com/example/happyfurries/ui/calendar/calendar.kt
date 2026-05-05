@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import com.example.happyfurries.ui.Main.CalendarState
 import com.example.happyfurries.ui.Main.CalendarView
 import java.time.YearMonth
-
+import com.example.happyfurries.ui.calendar.CalendarEvent
 @Composable
 fun Calendar() {
     var state by remember {
@@ -20,11 +20,16 @@ fun Calendar() {
             )
         )
     }
+    var events by remember { mutableStateOf(listOf<CalendarEvent>()) }
 
     // Si hay un día seleccionado → mostrar vista diaria
     state.selectedDate?.let { selected ->
         DayView(
             date = selected,
+            events = events.filter { it.date==selected },
+            onAddEvent = {newEvent ->
+                events = events + newEvent
+            },
             onBack = {
                 state = state.copy(selectedDate = null)
             }
@@ -62,6 +67,7 @@ fun Calendar() {
         // Vista del calendario
         CalendarView(
             state = state,
+            events = events,
             onDateSelected = { date ->
                 state = state.copy(selectedDate = date)
             }
