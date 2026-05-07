@@ -1,4 +1,4 @@
-package com.example.happyfurries.ui.Main
+package com.example.happyfurries.ui.main
 //pantalla principal
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

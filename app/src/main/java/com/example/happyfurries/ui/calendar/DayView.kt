@@ -8,12 +8,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun DayView(
     date: LocalDate,
     events: List<CalendarEvent>,
     onAddEvent: (CalendarEvent) -> Unit,
+    onDeleteEvent: (CalendarEvent) -> Unit,
     onBack: () -> Unit
 ) {
     var showForm by remember { mutableStateOf(false) }
@@ -21,9 +24,14 @@ fun DayView(
     var description by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(16.dp)) {
+        val formattedDate = date.format(
+            DateTimeFormatter.ofPattern("d 'de' MMMM yyyy", Locale("es"))
+        )
+
 
         // Título del día
-        Text("Día seleccionado: ${date.dayOfMonth}/${date.monthValue}/${date.year}")
+        Text("Día seleccionado: $formattedDate" +
+                "")
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -91,7 +99,18 @@ fun DayView(
             Text("No hay eventos para este día")
         } else {
             events.forEach { event ->
-                Text("- ${event.title}")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("- ${event.title}")
+
+                    Button(onClick = { onDeleteEvent(event) }) {
+                        Text("Eliminar")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

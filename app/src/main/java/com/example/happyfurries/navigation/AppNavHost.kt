@@ -5,7 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.happyfurries.ui.pet.AddPetScreen
-import com.example.happyfurries.ui.Main.CalendarScreen
+import com.example.happyfurries.ui.main.CalendarScreen
 import com.example.happyfurries.ui.pet.PetDetailScreen
 import com.example.happyfurries.ui.pet.PetFormScreen
 import com.example.happyfurries.ui.pet.PetScheduleScreen

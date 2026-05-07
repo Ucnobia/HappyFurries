@@ -1,4 +1,4 @@
-package com.example.happyfurries.ui.Main
+package com.example.happyfurries.ui.calendar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,58 +15,64 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.happyfurries.ui.calendar.CalendarEvent
 import java.time.LocalDate
+import java.time.YearMonth
+import com.example.happyfurries.ui.calendar.getDaysForCalendar
+
 
 @Composable
 fun CalendarView(
     state: CalendarState,
     events: List<CalendarEvent>,
-    onDateSelected: (LocalDate) -> Unit
+    onDateSelected: (LocalDate) -> Unit,
+    onMonthChange: (YearMonth) -> Unit
 ) {
     val days = state.currentMonth.getDaysForCalendar()
 
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        // Título del mes
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        val monthName = state.currentMonth.month
+            .getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale("es"))
+            .replaceFirstChar { it.uppercase() }
+
         Text(
-            text = "${state.currentMonth.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${state.currentMonth.year}",
+            text = "$monthName ${state.currentMonth.year}",
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(16.dp)
         )
-// Encabezado con los nombres de los días
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            val dayNames = listOf("L", "M", "X", "J", "V", "S", "D")
+            val dayNames = java.time.DayOfWeek.values().map {
+                it.getDisplayName(java.time.format.TextStyle.NARROW, java.util.Locale("es"))
+                    .replaceFirstChar { c -> c.uppercase() }
+            }
             dayNames.forEach { day ->
                 Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(vertical = 4.dp),
+                    modifier = Modifier.weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = day,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Text(text = day, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
 
-        // Cuadrícula de días
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             items(days) { date ->
-                //Eventos en el dia
-                val hasEvents = date != null && events.any { it.date == date }
-                Column (
+
+                val clickedMonth = YearMonth.from(date)
+                val currentMonth = state.currentMonth
+                val isFromCurrentMonth = clickedMonth == currentMonth
+                val hasEvents = events.any { it.date == date }
+
+                Column(
                     modifier = Modifier
                         .aspectRatio(1f)
                         .padding(4.dp)
@@ -74,23 +80,32 @@ fun CalendarView(
                         .background(
                             if (date == state.selectedDate)
                                 MaterialTheme.colorScheme.primary
-                            else
-                                Color.Transparent
+                            else Color.Transparent
                         )
-                        .clickable(enabled = date != null) {
-                            date?.let(onDateSelected)
+                        .clickable {
+                            when {
+                                clickedMonth.isBefore(currentMonth) -> {
+                                    onMonthChange(clickedMonth)
+                                }
+                                clickedMonth.isAfter(currentMonth) -> {
+                                    onMonthChange(clickedMonth)
+                                }
+                                else -> onDateSelected(date)
+                            }
                         },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
+
                     Text(
-                        text = date?.dayOfMonth?.toString() ?: "",
-                        color = if (date == state.selectedDate)
-                            MaterialTheme.colorScheme.onPrimary
-                        else
-                            MaterialTheme.colorScheme.onBackground
+                        text = date.dayOfMonth.toString(),
+                        color = when {
+                            date == state.selectedDate -> MaterialTheme.colorScheme.onPrimary
+                            isFromCurrentMonth -> MaterialTheme.colorScheme.onBackground
+                            else -> Color.Gray
+                        }
                     )
-                //Dibujar puntos para eventos
+
                     if (hasEvents) {
                         Box(
                             modifier = Modifier
@@ -99,7 +114,6 @@ fun CalendarView(
                                 .background(Color.Black, CircleShape)
                         )
                     }
-
                 }
             }
         }
