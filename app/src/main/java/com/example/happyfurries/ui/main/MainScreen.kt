@@ -1,24 +1,16 @@
 package com.example.happyfurries.ui.main
-//pantalla principal
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,92 +21,88 @@ import androidx.navigation.NavController
 import com.example.happyfurries.R
 import com.example.happyfurries.navigation.Routes
 import com.example.happyfurries.ui.calendar.Calendar
+import com.example.happyfurries.ui.viewmodel.PetViewModel
+import com.example.happyfurries.ui.viewmodel.EventViewModel
 
 @Composable
-fun CalendarScreen(navController: NavController) {
+fun MainScreen(
+    navController: NavController,
+    petViewModel: PetViewModel,
+    eventViewModel: EventViewModel
+) {
+    val events = eventViewModel.events.collectAsState().value
     val pets = listOf("Misha", "Luna", "Toby") // Temporal
-//Estructura base de la pantalla
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-    )
-    {
-        //Logo app arriba
-
+    ) {
         AppLogoHeader()
 
-        Spacer(modifier=Modifier.height(16.dp))
-        //Place holder calendario
+        Spacer(modifier = Modifier.height(16.dp))
 
         Calendar()
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        UpcomingEventsSection()
-        // Tira eventos
+        UpcomingEventsSection(events)
+
         Spacer(modifier = Modifier.height(24.dp))
 
         PetRow(
             pets = pets,
             onPetClick = { petName ->
-                navController.navigate(Routes.PET_DETAIL)
+                navController.navigate(Routes.ADD_PET)
             },
             onAddPetClick = {
                 navController.navigate(Routes.ADD_PET)
             }
-        ) //caja horizontal mascotas
+        )
     }
 }
 
 @Composable
-fun AppLogoHeader (){
-    //Logo en drawable
+fun AppLogoHeader() {
     Image(
         painter = painterResource(id = R.drawable.logobig),
         contentDescription = "Logo",
         modifier = Modifier.size(40.dp)
     )
-
 }
 
 @Composable
-fun CalendarScreen() {
-    Calendar()
-}
-
-
-
-
-
-@Composable
-fun UpcomingEventsSection(){
-    Column (
-        modifier = Modifier.fillMaxWidth()
-    ){
+fun UpcomingEventsSection(events: List<com.example.happyfurries.data.entities.EventEntity>) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Proximos Eventos",
+            text = "Próximos Eventos",
             style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .clip(MaterialTheme.shapes.medium)
-                .background(Color(0xFFF0F0F0)),
-            contentAlignment = Alignment.Center
-        ){
-            Text(
-                text = "Proximos eventos",
-                color = Color.Gray
-            )
 
-
+        if (events.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(Color(0xFFF0F0F0)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No hay eventos",
+                    color = Color.Gray
+                )
+            }
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                events.forEach { event ->
+                    Text("• ${event.title} — ${event.time}")
+                }
+            }
         }
     }
 }
-
 
 @Composable
 fun PetRow(
@@ -155,6 +143,7 @@ fun PetCircle(letter: String, onClick: () -> Unit) {
         )
     }
 }
+
 @Composable
 fun AddPetCircle(onClick: () -> Unit) {
     Box(
@@ -171,12 +160,3 @@ fun AddPetCircle(onClick: () -> Unit) {
         )
     }
 }
-
-
-
-
-
-
-
-
-
