@@ -126,7 +126,7 @@ fun PetRow(
     ) {
         pets.forEach { pet ->
             PetCircle(
-                letter = pet.initial,
+                letter = pet.name,
                 color  = parseColor(pet.colorHex),
                 onClick = { onPetClick(pet) }
             )

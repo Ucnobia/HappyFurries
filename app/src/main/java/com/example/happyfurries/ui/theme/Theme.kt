@@ -1,58 +1,32 @@
 package com.example.happyfurries.ui.theme
 
-import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+// Tema de Happy Furies — solo modo claro, sin dynamic color
+// Dynamic color lo desactivo porque quiero que siempre se vean
+// mis colores personalizados independientemente del móvil
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val HappyFurriesColorScheme = lightColorScheme(
+    primary          = GreenDark,        // botones principales, elementos seleccionados
+    onPrimary        = White,            // texto sobre el color primary
+    secondary        = GreenMedium,      // acentos secundarios
+    onSecondary      = White,
+    background       = BackgroundGrey,   // fondo general
+    onBackground     = TextDark,         // texto sobre el fondo
+    surface          = White,            // tarjetas y superficies
+    onSurface        = TextDark,
+    error            = Color(0xFFB00020),
+    onError          = White
 )
 
 @Composable
-fun HappyFurriesTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
-) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
+fun HappyFurriesTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+        colorScheme = HappyFurriesColorScheme,
+        typography  = Typography,
+        content     = content
     )
 }
