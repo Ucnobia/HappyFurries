@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,28 +15,38 @@ import androidx.compose.ui.unit.dp
 import com.example.happyfurries.data.entities.PetEntity
 import com.example.happyfurries.ui.viewmodel.PetViewModel
 
-// Pantalla para crear una mascota nueva.
-// Cada campo tiene su propio estado con remember + mutableStateOf
-// para que la UI se actualice sola cuando el usuario escribe.
+// Pantalla para editar una mascota existente.
+// Funciona igual que PetFormScreen pero carga los datos actuales
+// de la mascota en los campos para que el usuario solo cambie lo que quiera.
 
 @Composable
-fun PetFormScreen(
-    viewModel: PetViewModel,
-    onPetSaved: () -> Unit
+fun PetEditScreen(
+    petId: Int,
+    petViewModel: PetViewModel,
+    onSaved: () -> Unit,
+    onBack: () -> Unit
 ) {
-    // Estado de cada campo del formulario
-    val name         = remember { mutableStateOf("") }
-    val species      = remember { mutableStateOf("") }
-    val breed        = remember { mutableStateOf("") }
-    val weightKg     = remember { mutableStateOf("") }
-    val foodBrand    = remember { mutableStateOf("") }
-    val dailyFood    = remember { mutableStateOf("") }
-    val notes        = remember { mutableStateOf("") }
+    val pets = petViewModel.pets.collectAsState().value
+    val pet  = pets.find { it.id == petId }
 
-    // Color del avatar — por defecto verde como en el diseño
-    val colorHex     = remember { mutableStateOf("#4CAF50") }
+    // Mientras carga la mascota mostramos un loader
+    if (pet == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
-    // Fondo igual que el resto de pantallas
+    // Inicializo cada campo con el valor actual de la mascota
+    // Si el usuario no toca un campo, se queda como estaba
+    val name      = remember { mutableStateOf(pet.name) }
+    val species   = remember { mutableStateOf(pet.species) }
+    val breed     = remember { mutableStateOf(pet.breed ?: "") }
+    val weightKg  = remember { mutableStateOf(if (pet.weightKg > 0) pet.weightKg.toString() else "") }
+    val foodBrand = remember { mutableStateOf(pet.foodBrand ?: "") }
+    val dailyFood = remember { mutableStateOf(pet.dailyFoodGrams?.toString() ?: "") }
+    val notes     = remember { mutableStateOf(pet.notes ?: "") }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -43,22 +55,26 @@ fun PetFormScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // scroll por si el teclado tapa campos
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Botón de volver sin guardar
+            Row(modifier = Modifier.fillMaxWidth()) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+            }
 
             Text(
-                text = "Let's get started, tell us about your furry!",
+                text = "Edit ${pet.name}",
                 style = MaterialTheme.typography.titleMedium
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Nombre — obligatorio
             OutlinedTextField(
                 value = name.value,
                 onValueChange = { name.value = it },
@@ -66,7 +82,6 @@ fun PetFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Especie — obligatorio (Dog, Cat, Rabbit...)
             OutlinedTextField(
                 value = species.value,
                 onValueChange = { species.value = it },
@@ -74,7 +89,6 @@ fun PetFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Raza — opcional
             OutlinedTextField(
                 value = breed.value,
                 onValueChange = { breed.value = it },
@@ -82,7 +96,6 @@ fun PetFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Peso en kilos — opcional
             OutlinedTextField(
                 value = weightKg.value,
                 onValueChange = { weightKg.value = it },
@@ -90,7 +103,6 @@ fun PetFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Marca de comida — opcional
             OutlinedTextField(
                 value = foodBrand.value,
                 onValueChange = { foodBrand.value = it },
@@ -98,7 +110,6 @@ fun PetFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Gramos diarios de comida — opcional
             OutlinedTextField(
                 value = dailyFood.value,
                 onValueChange = { dailyFood.value = it },
@@ -106,7 +117,6 @@ fun PetFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Notas — opcional
             OutlinedTextField(
                 value = notes.value,
                 onValueChange = { notes.value = it },
@@ -122,29 +132,28 @@ fun PetFormScreen(
                     // Solo guardo si nombre y especie tienen valor
                     if (name.value.isBlank() || species.value.isBlank()) return@Button
 
-                    val pet = PetEntity(
-                        id             = 0,
+                    // Construyo la mascota actualizada manteniendo el mismo ID y colorHex
+                    val updatedPet = PetEntity(
+                        id             = pet.id,
                         name           = name.value.trim(),
                         species        = species.value.trim(),
                         breed          = breed.value.trim().ifBlank { null },
-                        colorHex       = colorHex.value,
+                        colorHex       = pet.colorHex,
                         weightKg       = weightKg.value.toFloatOrNull() ?: 0f,
                         foodBrand      = foodBrand.value.trim().ifBlank { null },
-                        foodBagWeightKg = null,
+                        foodBagWeightKg = pet.foodBagWeightKg,
                         dailyFoodGrams = dailyFood.value.toIntOrNull(),
                         notes          = notes.value.trim().ifBlank { null }
                     )
 
-                    viewModel.addPet(pet) {
-                        onPetSaved()
-                    }
+                    petViewModel.updatePet(updatedPet) { onSaved() }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF1B5E20)
                 )
             ) {
-                Text("Save furry", color = Color.White)
+                Text("Save changes", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(24.dp))

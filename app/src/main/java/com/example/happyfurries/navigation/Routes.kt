@@ -10,11 +10,16 @@ object Routes {
 
     const val ADD_PET = "add_pet"
 
-    // Parámetro dinámico
+    // Detalle de mascota — recibe el ID como parámetro dinámico
     const val PET_DETAIL = "pet_detail/{petId}"
 
-    const val PET_SCHEDULE = "pet_schedule"
+    // Editar mascota — también recibe el ID para cargar los datos actuales
+    const val PET_EDIT = "pet_edit/{petId}"
 
-    // Helper para navegar sin errores
+    const val PET_SCHEDULE = "pet_schedule/{petId}"
+
+    // Helpers para navegar pasando el ID sin errores de formato
     fun petDetail(petId: Int) = "pet_detail/$petId"
+    fun petEdit(petId: Int)   = "pet_edit/$petId"
+    fun petSchedule(petId: Int) = "pet_schedule/$petId"
 }

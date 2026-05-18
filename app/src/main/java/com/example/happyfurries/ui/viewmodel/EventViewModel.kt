@@ -20,6 +20,7 @@ class EventViewModel(
         loadEventsForToday()
     }
 
+    // Carga los eventos del día actual al arrancar el ViewModel
     fun loadEventsForToday() {
         viewModelScope.launch {
             val today = LocalDate.now().toString()
@@ -27,6 +28,7 @@ class EventViewModel(
         }
     }
 
+    // Carga los eventos de una fecha concreta — lo usa el calendario
     fun loadEventsForDate(date: LocalDate) {
         viewModelScope.launch {
             val dateString = date.toString()
@@ -34,6 +36,14 @@ class EventViewModel(
         }
     }
 
+    // Carga todos los eventos de una mascota concreta — lo usa PetScheduleScreen
+    fun loadEventsByPet(petId: Int) {
+        viewModelScope.launch {
+            _events.value = repository.getEventsByPet(petId)
+        }
+    }
+
+    // Añade un evento y recarga los del día correspondiente
     fun addEvent(event: EventEntity, onDone: () -> Unit = {}) {
         viewModelScope.launch {
             repository.insertEvent(event)
@@ -42,6 +52,7 @@ class EventViewModel(
         }
     }
 
+    // Borra un evento y recarga los del día correspondiente
     fun deleteEvent(event: EventEntity, onDone: () -> Unit = {}) {
         viewModelScope.launch {
             repository.deleteEvent(event)
@@ -50,6 +61,8 @@ class EventViewModel(
         }
     }
 
+    // Filtra los eventos ya cargados por fecha — lo usa el calendario
+    // para resaltar los días que tienen eventos
     fun eventsForDay(date: LocalDate): List<EventEntity> {
         val dateString = date.toString()
         return _events.value.filter { it.date == dateString }
