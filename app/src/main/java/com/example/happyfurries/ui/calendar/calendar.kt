@@ -6,12 +6,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.happyfurries.ui.calendar.CalendarState
-import com.example.happyfurries.ui.calendar.CalendarView
+import com.example.happyfurries.ui.viewmodel.EventViewModel
 import java.time.YearMonth
-import com.example.happyfurries.ui.calendar.CalendarEvent
+
+// Componente principal del calendario.
+// Ahora recibe el EventViewModel para trabajar con eventos reales
+// en lugar de una lista local hardcodeada.
+
 @Composable
-fun Calendar() {
+fun Calendar(eventViewModel: EventViewModel) {
 
     var state by remember {
         mutableStateOf(
@@ -22,14 +25,11 @@ fun Calendar() {
         )
     }
 
-    var events by remember { mutableStateOf(listOf<CalendarEvent>()) }
-
+    // Si hay un día seleccionado mostramos el DayView con sus eventos
     state.selectedDate?.let { selected ->
         DayView(
             date = selected,
-            events = events.filter { it.date == selected },
-            onAddEvent = { newEvent -> events = events + newEvent },
-            onDeleteEvent = { event -> events = events - event },
+            eventViewModel = eventViewModel,
             onBack = { state = state.copy(selectedDate = null) }
         )
         return
@@ -40,23 +40,25 @@ fun Calendar() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(onClick = {
                 state = state.copy(currentMonth = state.currentMonth.minusMonths(1))
-            }) { Text("Anterior") }
+            }) { Text("<") }
 
             Button(onClick = {
                 state = state.copy(currentMonth = state.currentMonth.plusMonths(1))
-            }) { Text("Siguiente") }
+            }) { Text(">") }
         }
 
         CalendarView(
             state = state,
-            events = events,
+            eventViewModel = eventViewModel,
             onDateSelected = { date ->
                 state = state.copy(selectedDate = date)
+                // Cargo los eventos de ese día al seleccionarlo
+                eventViewModel.loadEventsForDate(date)
             },
             onMonthChange = { newMonth ->
                 state = state.copy(currentMonth = newMonth)
@@ -64,4 +66,3 @@ fun Calendar() {
         )
     }
 }
-

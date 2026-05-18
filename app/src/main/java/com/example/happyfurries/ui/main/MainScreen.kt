@@ -2,6 +2,7 @@ package com.example.happyfurries.ui.main
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -10,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,10 +21,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.happyfurries.R
+import com.example.happyfurries.data.entities.PetEntity
 import com.example.happyfurries.navigation.Routes
 import com.example.happyfurries.ui.calendar.Calendar
-import com.example.happyfurries.ui.viewmodel.PetViewModel
 import com.example.happyfurries.ui.viewmodel.EventViewModel
+import com.example.happyfurries.ui.viewmodel.PetViewModel
 
 @Composable
 fun MainScreen(
@@ -30,8 +33,13 @@ fun MainScreen(
     petViewModel: PetViewModel,
     eventViewModel: EventViewModel
 ) {
+    // Cargo las mascotas reales del ViewModel al abrir la pantalla
+    LaunchedEffect(Unit) {
+        petViewModel.loadPets()
+    }
+
     val events = eventViewModel.events.collectAsState().value
-    val pets = listOf("Misha", "Luna", "Toby") // Temporal
+    val pets   = petViewModel.pets.collectAsState().value
 
     Column(
         modifier = Modifier
@@ -42,7 +50,8 @@ fun MainScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Calendar()
+        // Paso el eventViewModel al calendario para que muestre eventos reales
+        Calendar(eventViewModel = eventViewModel)
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -50,10 +59,11 @@ fun MainScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Paso las mascotas reales y navego al detalle al hacer click
         PetRow(
             pets = pets,
-            onPetClick = { petName ->
-                navController.navigate(Routes.ADD_PET)
+            onPetClick = { pet ->
+                navController.navigate(Routes.petDetail(pet.id))
             },
             onAddPetClick = {
                 navController.navigate(Routes.ADD_PET)
@@ -75,7 +85,7 @@ fun AppLogoHeader() {
 fun UpcomingEventsSection(events: List<com.example.happyfurries.data.entities.EventEntity>) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Próximos Eventos",
+            text = "Upcoming events",
             style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -89,10 +99,7 @@ fun UpcomingEventsSection(events: List<com.example.happyfurries.data.entities.Ev
                     .background(Color(0xFFF0F0F0)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "No hay eventos",
-                    color = Color.Gray
-                )
+                Text(text = "No events for today", color = Color.Gray)
             }
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -104,10 +111,11 @@ fun UpcomingEventsSection(events: List<com.example.happyfurries.data.entities.Ev
     }
 }
 
+// PetRow ahora recibe PetEntity en lugar de String
 @Composable
 fun PetRow(
-    pets: List<String>,
-    onPetClick: (String) -> Unit,
+    pets: List<PetEntity>,
+    onPetClick: (PetEntity) -> Unit,
     onAddPetClick: () -> Unit
 ) {
     Row(
@@ -116,10 +124,11 @@ fun PetRow(
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        pets.forEach { petName ->
+        pets.forEach { pet ->
             PetCircle(
-                letter = petName.first().uppercase(),
-                onClick = { onPetClick(petName) }
+                letter = pet.initial,
+                color  = parseColor(pet.colorHex),
+                onClick = { onPetClick(pet) }
             )
         }
 
@@ -127,20 +136,19 @@ fun PetRow(
     }
 }
 
+// Cada círculo muestra la inicial de la mascota con su color personalizado
 @Composable
-fun PetCircle(letter: String, onClick: () -> Unit) {
+fun PetCircle(letter: String, color: Color, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(60.dp)
             .clip(CircleShape)
-            .background(Color(0xFFE0E0E0))
+            .border(3.dp, color, CircleShape)
+            .background(Color.White)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = letter,
-            style = MaterialTheme.typography.titleMedium
-        )
+        Text(text = letter, style = MaterialTheme.typography.titleMedium)
     }
 }
 
@@ -154,9 +162,16 @@ fun AddPetCircle(onClick: () -> Unit) {
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "+",
-            style = MaterialTheme.typography.titleMedium
-        )
+        Text(text = "+", style = MaterialTheme.typography.titleMedium)
+    }
+}
+
+// Convierte el string hexadecimal del colorHex a un Color de Compose
+// Si el formato es incorrecto devuelvo verde por defecto
+fun parseColor(hex: String): Color {
+    return try {
+        Color(android.graphics.Color.parseColor(hex))
+    } catch (e: Exception) {
+        Color(0xFF4CAF50)
     }
 }

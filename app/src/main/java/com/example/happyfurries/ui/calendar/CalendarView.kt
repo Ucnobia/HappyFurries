@@ -10,24 +10,29 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.happyfurries.ui.viewmodel.EventViewModel
 import java.time.LocalDate
 import java.time.YearMonth
-import com.example.happyfurries.ui.calendar.getDaysForCalendar
 
+// Vista del grid del calendario.
+// Usa el EventViewModel para saber qué días tienen eventos
+// y marcarlos con un punto debajo del número.
 
 @Composable
 fun CalendarView(
     state: CalendarState,
-    events: List<CalendarEvent>,
+    eventViewModel: EventViewModel,
     onDateSelected: (LocalDate) -> Unit,
     onMonthChange: (YearMonth) -> Unit
 ) {
     val days = state.currentMonth.getDaysForCalendar()
+    val events = eventViewModel.events.collectAsState().value
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
@@ -41,6 +46,7 @@ fun CalendarView(
             modifier = Modifier.padding(16.dp)
         )
 
+        // Cabecera con los días de la semana
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -52,25 +58,23 @@ fun CalendarView(
                     .replaceFirstChar { c -> c.uppercase() }
             }
             dayNames.forEach { day ->
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     Text(text = day, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
 
+        // Grid con los días del mes
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             items(days) { date ->
-
-                val clickedMonth = YearMonth.from(date)
-                val currentMonth = state.currentMonth
-                val isFromCurrentMonth = clickedMonth == currentMonth
-                val hasEvents = events.any { it.date == date }
+                val clickedMonth    = YearMonth.from(date)
+                val currentMonth    = state.currentMonth
+                val isCurrentMonth  = clickedMonth == currentMonth
+                // Compruebo si hay algún evento en ese día usando el ViewModel
+                val hasEvents       = events.any { it.date == date.toString() }
 
                 Column(
                     modifier = Modifier
@@ -84,34 +88,29 @@ fun CalendarView(
                         )
                         .clickable {
                             when {
-                                clickedMonth.isBefore(currentMonth) -> {
-                                    onMonthChange(clickedMonth)
-                                }
-                                clickedMonth.isAfter(currentMonth) -> {
-                                    onMonthChange(clickedMonth)
-                                }
+                                clickedMonth.isBefore(currentMonth) -> onMonthChange(clickedMonth)
+                                clickedMonth.isAfter(currentMonth)  -> onMonthChange(clickedMonth)
                                 else -> onDateSelected(date)
                             }
                         },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-
                     Text(
                         text = date.dayOfMonth.toString(),
                         color = when {
                             date == state.selectedDate -> MaterialTheme.colorScheme.onPrimary
-                            isFromCurrentMonth -> MaterialTheme.colorScheme.onBackground
-                            else -> Color.Gray
+                            isCurrentMonth            -> MaterialTheme.colorScheme.onBackground
+                            else                      -> Color.Gray
                         }
                     )
 
+                    // Punto verde debajo del número si ese día tiene eventos
                     if (hasEvents) {
                         Box(
                             modifier = Modifier
                                 .size(6.dp)
-                                .padding(top = 2.dp)
-                                .background(Color.Black, CircleShape)
+                                .background(Color(0xFF4CAF50), CircleShape)
                         )
                     }
                 }
