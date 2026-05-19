@@ -69,10 +69,9 @@ fun AppNavHost(
         // Añadir mascota adicional desde la pantalla principal
         composable(Routes.ADD_PET) {
             AddPetScreen(
-                viewModel = petViewModel,
-                onPetSaved = {
-                    navController.popBackStack()
-                }
+                viewModel  = petViewModel,
+                onPetSaved = { navController.popBackStack() },
+                onBack     = { navController.popBackStack() }
             )
         }
 

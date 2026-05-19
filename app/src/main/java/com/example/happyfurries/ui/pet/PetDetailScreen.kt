@@ -1,19 +1,25 @@
 package com.example.happyfurries.ui.pet
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.happyfurries.R
+import com.example.happyfurries.ui.AppBackground
 import com.example.happyfurries.ui.viewmodel.PetViewModel
 
 // Pantalla de detalle de una mascota.
-// Recibe el ID, busca la mascota en el ViewModel y muestra su info.
 // De momento solo permite editar — el borrado es una decisión de diseño
 // pendiente porque eliminar una mascota es un momento delicado para el usuario.
 
@@ -27,7 +33,6 @@ fun PetDetailScreen(
     val pets = petViewModel.pets.collectAsState().value
     val pet  = pets.find { it.id == petId }
 
-    // Mientras no tengamos la mascota mostramos un loader
     if (pet == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -35,11 +40,7 @@ fun PetDetailScreen(
         return
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFEEEEEE))
-    ) {
+    AppBackground {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -47,19 +48,58 @@ fun PetDetailScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            // Botón de volver atrás
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            // Cabecera con logo centrado, botón atrás a la izquierda
+            // y círculo de mascota a la derecha
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 56.dp)
+                    .height(56.dp)
+            ) {
+                // Botón atrás — izquierda
+                IconButton(
+                    onClick  = onBack,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+
+                // Logo — centro exacto
+                Image(
+                    painter            = painterResource(id = R.drawable.logobig),
+                    contentDescription = "Logo",
+                    modifier           = Modifier
+                        .size(56.dp)
+                        .align(Alignment.Center)
+                )
+
+                // Círculo de mascota — derecha
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .border(3.dp, parseColorDetail(pet.colorHex), CircleShape)
+                        .align(Alignment.CenterEnd),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text     = pet.name,
+                        fontSize = 12.sp,
+                        color    = Color(0xFF1B5E20),
+                        maxLines = 1
+                    )
+                }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             Text(
-                text = "Furry profile",
+                text  = "Furry profile",
                 style = MaterialTheme.typography.headlineMedium
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Información de la mascota
             Text("Name: ${pet.name}")
             Text("Species: ${pet.species}")
             if (!pet.breed.isNullOrBlank())     Text("Breed: ${pet.breed}")
@@ -70,18 +110,23 @@ fun PetDetailScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Botón editar
             Button(
-                onClick = onEdit,
+                onClick  = onEdit,
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1B5E20)
-                )
+                colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20))
             ) {
                 Text("Edit", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+
+fun parseColorDetail(hex: String): Color {
+    return try {
+        Color(android.graphics.Color.parseColor(hex))
+    } catch (e: Exception) {
+        Color(0xFF4CAF50)
     }
 }

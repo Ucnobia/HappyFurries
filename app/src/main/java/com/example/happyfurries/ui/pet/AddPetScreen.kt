@@ -1,66 +1,161 @@
 package com.example.happyfurries.ui.pet
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.happyfurries.R
 import com.example.happyfurries.data.entities.PetEntity
+import com.example.happyfurries.ui.AppBackground
 import com.example.happyfurries.ui.viewmodel.PetViewModel
+
+// Pantalla para añadir una mascota adicional desde la pantalla principal.
+// Tiene botón atrás porque se puede cancelar.
 
 @Composable
 fun AddPetScreen(
     viewModel: PetViewModel,
-    onPetSaved: () -> Unit = {}
+    onPetSaved: () -> Unit = {},
+    onBack: () -> Unit = {}
 ) {
-    val name = remember { mutableStateOf("") }
-    val species = remember { mutableStateOf("") }
-    val colorHex = remember { mutableStateOf("#FFB6C1") } // temporal
+    val name      = remember { mutableStateOf("") }
+    val species   = remember { mutableStateOf("") }
+    val breed     = remember { mutableStateOf("") }
+    val weightKg  = remember { mutableStateOf("") }
+    val foodBrand = remember { mutableStateOf("") }
+    val dailyFood = remember { mutableStateOf("") }
+    val notes     = remember { mutableStateOf("") }
+    val colorHex  = remember { mutableStateOf("#4CAF50") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Add Pet")
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        unfocusedContainerColor = Color(0xFFF5F5F5),
+        focusedContainerColor   = Color(0xFFF5F5F5)
+    )
 
-        OutlinedTextField(
-            value = name.value,
-            onValueChange = { name.value = it },
-            label = { Text("Name") }
-        )
-
-        OutlinedTextField(
-            value = species.value,
-            onValueChange = { species.value = it },
-            label = { Text("Species") }
-        )
-
-        Button(
-            onClick = {
-                val pet = PetEntity(
-                    id = 0,
-                    name = name.value,
-                    colorHex = colorHex.value,
-                    species = species.value,
-                    weightKg = 0f,
-                    breed = null,
-                    foodBrand = null,
-                    foodBagWeightKg = null,
-                    dailyFoodGrams = null,
-                    notes = null
-                )
-
-                viewModel.addPet(pet) {
-                    onPetSaved()
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+    AppBackground {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Save")
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Cabecera con logo centrado y botón atrás
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 56.dp)
+            ) {
+                IconButton(
+                    onClick  = onBack,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+                Image(
+                    painter            = painterResource(id = R.drawable.logobig),
+                    contentDescription = "Logo",
+                    modifier           = Modifier
+                        .size(56.dp)
+                        .align(Alignment.Center)
+                )
+            }
+
+            Text(
+                text  = "Add a new furry!",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            OutlinedTextField(
+                value         = name.value,
+                onValueChange = { name.value = it },
+                label         = { Text("Name *") },
+                modifier      = Modifier.fillMaxWidth(),
+                colors        = fieldColors
+            )
+            OutlinedTextField(
+                value         = species.value,
+                onValueChange = { species.value = it },
+                label         = { Text("Species * (Dog, Cat, Rabbit...)") },
+                modifier      = Modifier.fillMaxWidth(),
+                colors        = fieldColors
+            )
+            OutlinedTextField(
+                value         = breed.value,
+                onValueChange = { breed.value = it },
+                label         = { Text("Breed") },
+                modifier      = Modifier.fillMaxWidth(),
+                colors        = fieldColors
+            )
+            OutlinedTextField(
+                value         = weightKg.value,
+                onValueChange = { weightKg.value = it },
+                label         = { Text("Weight (kg)") },
+                modifier      = Modifier.fillMaxWidth(),
+                colors        = fieldColors
+            )
+            OutlinedTextField(
+                value         = foodBrand.value,
+                onValueChange = { foodBrand.value = it },
+                label         = { Text("Food brand") },
+                modifier      = Modifier.fillMaxWidth(),
+                colors        = fieldColors
+            )
+            OutlinedTextField(
+                value         = dailyFood.value,
+                onValueChange = { dailyFood.value = it },
+                label         = { Text("Daily food (grams)") },
+                modifier      = Modifier.fillMaxWidth(),
+                colors        = fieldColors
+            )
+            OutlinedTextField(
+                value         = notes.value,
+                onValueChange = { notes.value = it },
+                label         = { Text("Notes") },
+                modifier      = Modifier.fillMaxWidth(),
+                minLines      = 2,
+                colors        = fieldColors
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    if (name.value.isBlank() || species.value.isBlank()) return@Button
+                    val pet = PetEntity(
+                        id              = 0,
+                        name            = name.value.trim(),
+                        species         = species.value.trim(),
+                        breed           = breed.value.trim().ifBlank { null },
+                        colorHex        = colorHex.value,
+                        weightKg        = weightKg.value.toFloatOrNull() ?: 0f,
+                        foodBrand       = foodBrand.value.trim().ifBlank { null },
+                        foodBagWeightKg = null,
+                        dailyFoodGrams  = dailyFood.value.toIntOrNull(),
+                        notes           = notes.value.trim().ifBlank { null }
+                    )
+                    viewModel.addPet(pet) { onPetSaved() }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20))
+            ) {
+                Text("Save furry", color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
