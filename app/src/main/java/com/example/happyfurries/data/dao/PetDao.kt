@@ -6,7 +6,7 @@ import com.example.happyfurries.data.entities.PetEntity
 @Dao
 interface PetDao {
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPet(pet: PetEntity)
 
     @Update

@@ -40,7 +40,7 @@ fun DayView(
     Column(modifier = Modifier.padding(16.dp)) {
 
         val formattedDate = date.format(
-            DateTimeFormatter.ofPattern("d 'de' MMMM yyyy", Locale("es"))
+            DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH)
         )
 
         Text(

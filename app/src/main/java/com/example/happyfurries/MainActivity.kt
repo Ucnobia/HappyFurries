@@ -29,22 +29,33 @@ class MainActivity : ComponentActivity() {
         val db = DatabaseProvider.getDatabase(this)
 
         // Repositorios
-        petRepository = PetRepository(db.petDao())
+        petRepository  = PetRepository(db.petDao())
         eventRepository = EventRepository(db.eventDao())
 
         // ViewModels
-        petViewModel = PetViewModel(petRepository)
+        petViewModel   = PetViewModel(petRepository)
         eventViewModel = EventViewModel(eventRepository)
 
-        // UI
+        // Compruebo si es la primera vez que se abre la app
+        // SharedPreferences guarda datos simples de forma persistente
+        // entre sesiones — como un pequeño fichero de configuración
+        val prefs       = getSharedPreferences("happy_furries_prefs", MODE_PRIVATE)
+        val isFirstTime = prefs.getBoolean("is_first_time", true)
+
         setContent {
             HappyFurriesTheme {
                 val navController = rememberNavController()
 
                 AppNavHost(
-                    navController = navController,
-                    petViewModel = petViewModel,
-                    eventViewModel = eventViewModel
+                    navController  = navController,
+                    petViewModel   = petViewModel,
+                    eventViewModel = eventViewModel,
+                    isFirstTime    = isFirstTime,
+                    onFirstTimeComplete = {
+                        // Cuando el usuario guarda su primera mascota
+                        // marcamos que ya no es la primera vez
+                        prefs.edit().putBoolean("is_first_time", false).apply()
+                    }
                 )
             }
         }

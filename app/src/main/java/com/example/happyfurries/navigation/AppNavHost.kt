@@ -15,30 +15,37 @@ import com.example.happyfurries.ui.splash.SplashScreen
 import com.example.happyfurries.ui.welcome.WelcomeScreen
 import com.example.happyfurries.ui.main.MainScreen
 
-// Aquí defino toda la navegación de la app.
-// Cada composable() es una pantalla con su ruta.
-// NavHost sabe a qué pantalla ir según la ruta que le paso.
+// Toda la navegación de la app.
+// isFirstTime decide si después del splash vamos al welcome o directo al main.
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     petViewModel: PetViewModel,
-    eventViewModel: EventViewModel
+    eventViewModel: EventViewModel,
+    isFirstTime: Boolean,
+    onFirstTimeComplete: () -> Unit
 ) {
     NavHost(
         navController = navController,
         startDestination = Routes.SPLASH
     ) {
-        // Splash — pantalla de inicio, redirige al welcome automáticamente
+        // Splash — decide a dónde ir según si es la primera vez
         composable(Routes.SPLASH) {
             SplashScreen {
-                navController.navigate(Routes.WELCOME) {
-                    popUpTo(Routes.SPLASH) { inclusive = true }
+                if (isFirstTime) {
+                    navController.navigate(Routes.WELCOME) {
+                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    }
+                } else {
+                    navController.navigate(Routes.MAIN_SCREEN) {
+                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    }
                 }
             }
         }
 
-        // Welcome — pantalla de bienvenida con el botón "Get started"
+        // Welcome — solo se ve la primera vez
         composable(Routes.WELCOME) {
             WelcomeScreen {
                 navController.navigate(Routes.PET_FORM)
@@ -50,7 +57,11 @@ fun AppNavHost(
             PetFormScreen(
                 viewModel = petViewModel,
                 onPetSaved = {
-                    navController.navigate(Routes.MAIN_SCREEN)
+                    // Marcamos que ya no es la primera vez
+                    onFirstTimeComplete()
+                    navController.navigate(Routes.MAIN_SCREEN) {
+                        popUpTo(Routes.WELCOME) { inclusive = true }
+                    }
                 }
             )
         }
@@ -65,44 +76,44 @@ fun AppNavHost(
             )
         }
 
-        // Pantalla principal con el calendario y las mascotas
+        // Pantalla principal
         composable(Routes.MAIN_SCREEN) {
             MainScreen(
-                navController = navController,
-                petViewModel = petViewModel,
+                navController  = navController,
+                petViewModel   = petViewModel,
                 eventViewModel = eventViewModel
             )
         }
 
-        // Detalle de una mascota — muestra su info y botón de editar
+        // Detalle de mascota
         composable(Routes.PET_DETAIL) { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toInt() ?: 0
             PetDetailScreen(
-                petId = petId,
+                petId      = petId,
                 petViewModel = petViewModel,
-                onEdit = { navController.navigate(Routes.petEdit(petId)) },
-                onBack = { navController.popBackStack() }
+                onEdit     = { navController.navigate(Routes.petEdit(petId)) },
+                onBack     = { navController.popBackStack() }
             )
         }
 
-        // Editar una mascota existente — carga sus datos actuales en el formulario
+        // Editar mascota
         composable(Routes.PET_EDIT) { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toInt() ?: 0
             PetEditScreen(
-                petId = petId,
+                petId      = petId,
                 petViewModel = petViewModel,
-                onSaved = { navController.popBackStack() },
-                onBack = { navController.popBackStack() }
+                onSaved    = { navController.popBackStack() },
+                onBack     = { navController.popBackStack() }
             )
         }
 
-        // Agenda de una mascota — muestra sus eventos
+        // Agenda de mascota
         composable(Routes.PET_SCHEDULE) { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toInt() ?: 0
             PetScheduleScreen(
-                petId = petId,
+                petId          = petId,
                 eventViewModel = eventViewModel,
-                onBack = { navController.popBackStack() }
+                onBack         = { navController.popBackStack() }
             )
         }
     }

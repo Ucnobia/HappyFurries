@@ -6,7 +6,7 @@ import com.example.happyfurries.data.entities.EventEntity
 @Dao
 interface EventDao {
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEvent(event: EventEntity)
 
     @Update

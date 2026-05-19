@@ -36,16 +36,6 @@ fun CalendarView(
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
-        val monthName = state.currentMonth.month
-            .getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale("es"))
-            .replaceFirstChar { it.uppercase() }
-
-        Text(
-            text = "$monthName ${state.currentMonth.year}",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(16.dp)
-        )
-
         // Cabecera con los días de la semana
         Row(
             modifier = Modifier
@@ -54,7 +44,7 @@ fun CalendarView(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             val dayNames = java.time.DayOfWeek.values().map {
-                it.getDisplayName(java.time.format.TextStyle.NARROW, java.util.Locale("es"))
+                it.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH)
                     .replaceFirstChar { c -> c.uppercase() }
             }
             dayNames.forEach { day ->
