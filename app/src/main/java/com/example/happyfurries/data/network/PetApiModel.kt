@@ -2,10 +2,8 @@ package com.example.happyfurries.data.network
 
 import com.google.gson.annotations.SerializedName
 
-// Este archivo define cómo son los datos que me llegan del backend en JSON.
-// Retrofit los convierte automáticamente en estos objetos Kotlin.
-// Son distintos a los de Room (PetEntity) porque uno es para la red
-// y el otro para la base de datos local, cada uno tiene su responsabilidad.
+// Datos backend en JSON.
+// Retrofit -->en objetos Kotlin.
 
 // Modelo de mascota tal como llega del servidor
 data class PetApiModel(
@@ -21,8 +19,8 @@ data class PetApiModel(
     @SerializedName("notes")           val notes: String?            // Notas adicionales
 )
 
-// Convierte lo que llega del backend en un objeto que Room puede guardar
-// Lo uso en el repositorio después de recibir la respuesta del servidor
+// --> lo que llega del backend -->objeto que Room -->guardar
+// Usa repositorio después de recibir la respuesta del servidor
 fun PetApiModel.toEntity() = com.example.happyfurries.data.entities.PetEntity(
     id             = this.id,
     name           = this.name,
@@ -36,7 +34,7 @@ fun PetApiModel.toEntity() = com.example.happyfurries.data.entities.PetEntity(
     notes          = this.notes
 )
 
-// Modelo de evento tal como llega del servidor
+// Modelo de evento --> servidor
 data class EventApiModel(
     @SerializedName("id")          val id: Int,
     @SerializedName("petId")       val petId: Int,        // A qué mascota pertenece
@@ -46,7 +44,7 @@ data class EventApiModel(
     @SerializedName("description") val description: String? // Descripción opcional
 )
 
-// Igual que con las mascotas, convierto el modelo de red al de Room
+//  Modelo de red --> de Room
 fun EventApiModel.toEntity() = com.example.happyfurries.data.entities.EventEntity(
     id          = this.id,
     petId       = this.petId,

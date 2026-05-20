@@ -2,8 +2,11 @@ package com.example.happyfurries.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.example.happyfurries.ui.event.AddEventScreen
 import com.example.happyfurries.ui.viewmodel.PetViewModel
 import com.example.happyfurries.ui.viewmodel.EventViewModel
 import com.example.happyfurries.ui.pet.AddPetScreen
@@ -27,10 +30,9 @@ fun AppNavHost(
     onFirstTimeComplete: () -> Unit
 ) {
     NavHost(
-        navController = navController,
+        navController    = navController,
         startDestination = Routes.SPLASH
     ) {
-        // Splash — decide a dónde ir según si es la primera vez
         composable(Routes.SPLASH) {
             SplashScreen {
                 if (isFirstTime) {
@@ -45,19 +47,16 @@ fun AppNavHost(
             }
         }
 
-        // Welcome — solo se ve la primera vez
         composable(Routes.WELCOME) {
             WelcomeScreen {
                 navController.navigate(Routes.PET_FORM)
             }
         }
 
-        // Formulario para crear la primera mascota
         composable(Routes.PET_FORM) {
             PetFormScreen(
                 viewModel = petViewModel,
                 onPetSaved = {
-                    // Marcamos que ya no es la primera vez
                     onFirstTimeComplete()
                     navController.navigate(Routes.MAIN_SCREEN) {
                         popUpTo(Routes.WELCOME) { inclusive = true }
@@ -66,7 +65,6 @@ fun AppNavHost(
             )
         }
 
-        // Añadir mascota adicional desde la pantalla principal
         composable(Routes.ADD_PET) {
             AddPetScreen(
                 viewModel  = petViewModel,
@@ -75,7 +73,6 @@ fun AppNavHost(
             )
         }
 
-        // Pantalla principal
         composable(Routes.MAIN_SCREEN) {
             MainScreen(
                 navController  = navController,
@@ -84,34 +81,53 @@ fun AppNavHost(
             )
         }
 
-        // Detalle de mascota
         composable(Routes.PET_DETAIL) { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toInt() ?: 0
             PetDetailScreen(
-                petId      = petId,
+                petId        = petId,
                 petViewModel = petViewModel,
-                onEdit     = { navController.navigate(Routes.petEdit(petId)) },
-                onBack     = { navController.popBackStack() }
+                onEdit       = { navController.navigate(Routes.petEdit(petId)) },
+                onBack       = { navController.popBackStack() }
             )
         }
 
-        // Editar mascota
         composable(Routes.PET_EDIT) { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toInt() ?: 0
             PetEditScreen(
-                petId      = petId,
+                petId        = petId,
                 petViewModel = petViewModel,
-                onSaved    = { navController.popBackStack() },
-                onBack     = { navController.popBackStack() }
+                onSaved      = { navController.popBackStack() },
+                onBack       = { navController.popBackStack() }
             )
         }
 
-        // Agenda de mascota
         composable(Routes.PET_SCHEDULE) { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toInt() ?: 0
             PetScheduleScreen(
                 petId          = petId,
+                petViewModel   = petViewModel,
                 eventViewModel = eventViewModel,
+                navController  = navController,
+                onBack         = { navController.popBackStack() }
+            )
+        }
+
+        // AddEvent — recibe fecha y petId como parámetros opcionales
+        composable(
+            route     = Routes.ADD_EVENT,
+            arguments = listOf(
+                navArgument("date")  { type = NavType.StringType; defaultValue = "" },
+                navArgument("petId") { type = NavType.StringType; defaultValue = "" }
+            )
+        ) { backStackEntry ->
+            val date  = backStackEntry.arguments?.getString("date")?.takeIf { it.isNotEmpty() }
+            val petId = backStackEntry.arguments?.getString("petId")?.toIntOrNull()
+            AddEventScreen(
+                eventViewModel = eventViewModel,
+                petViewModel   = petViewModel,
+                initialDate    = date,
+                initialPetId   = petId,
+                onSaved        = { navController.popBackStack() },
                 onBack         = { navController.popBackStack() }
             )
         }

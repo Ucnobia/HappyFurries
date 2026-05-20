@@ -58,15 +58,6 @@ class EventRepository(
         }
     }
 
-    // Actualiza un evento en el servidor y en Room
-    suspend fun updateEvent(event: EventEntity) {
-        try {
-            api.updateEvent(event.id, event.toApiModel())
-            eventDao.updateEvent(event)
-        } catch (e: Exception) {
-            eventDao.updateEvent(event)
-        }
-    }
 
     // Borra un evento del servidor y de Room
     suspend fun deleteEvent(event: EventEntity) {

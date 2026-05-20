@@ -66,7 +66,10 @@ fun MainScreen(
             }
 
             // Calendario
-            Calendar(eventViewModel = eventViewModel)
+            Calendar(
+                eventViewModel = eventViewModel,
+                navController  = navController
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 

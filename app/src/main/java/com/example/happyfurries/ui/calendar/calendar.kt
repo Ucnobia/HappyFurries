@@ -7,15 +7,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.happyfurries.ui.viewmodel.EventViewModel
 import java.time.YearMonth
 import java.util.Locale
 
 @Composable
-fun Calendar(eventViewModel: EventViewModel) {
-
+fun Calendar(
+    eventViewModel: EventViewModel,
+    navController: NavController
+) {
     var state by remember {
         mutableStateOf(
             CalendarState(
@@ -25,23 +29,23 @@ fun Calendar(eventViewModel: EventViewModel) {
         )
     }
 
+    // Si hay un día seleccionado mostramos el DayView
     state.selectedDate?.let { selected ->
         DayView(
             date           = selected,
             eventViewModel = eventViewModel,
+            navController  = navController,
             onBack         = { state = state.copy(selectedDate = null) }
         )
         return
     }
 
-    // Nombre del mes formateado
     val monthName = state.currentMonth.month
         .getDisplayName(java.time.format.TextStyle.FULL, Locale.ENGLISH)
         .replaceFirstChar { it.uppercase() }
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
-        // Flecha izquierda | Mes + año | Flecha derecha
         Row(
             modifier              = Modifier
                 .fillMaxWidth()
@@ -53,7 +57,6 @@ fun Calendar(eventViewModel: EventViewModel) {
                 state = state.copy(currentMonth = state.currentMonth.minusMonths(1))
             }) { Text("<") }
 
-            // Mes y año centrados
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text      = monthName,
@@ -64,7 +67,7 @@ fun Calendar(eventViewModel: EventViewModel) {
                     text      = state.currentMonth.year.toString(),
                     style     = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center,
-                    color     = androidx.compose.ui.graphics.Color.Gray
+                    color     = Color.Gray
                 )
             }
 

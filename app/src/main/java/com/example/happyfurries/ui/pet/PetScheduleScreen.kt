@@ -13,23 +13,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.happyfurries.R
+import com.example.happyfurries.navigation.Routes
 import com.example.happyfurries.ui.AppBackground
 import com.example.happyfurries.ui.viewmodel.EventViewModel
+import com.example.happyfurries.ui.viewmodel.PetViewModel
 
 // Pantalla que muestra todos los eventos de una mascota concreta.
+// El título muestra el nombre de la mascota para que el usuario sepa dónde está.
 
 @Composable
 fun PetScheduleScreen(
     petId: Int,
+    petViewModel: PetViewModel,
     eventViewModel: EventViewModel,
+    navController: NavController,
     onBack: () -> Unit
 ) {
     LaunchedEffect(petId) {
         eventViewModel.loadEventsByPet(petId)
+        petViewModel.loadPets()
     }
 
     val events = eventViewModel.events.collectAsState().value
+    val pets   = petViewModel.pets.collectAsState().value
+    val pet    = pets.find { it.id == petId }
 
     AppBackground {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -56,11 +65,25 @@ fun PetScheduleScreen(
                 )
             }
 
-            Text(
-                text     = "Furry schedule",
-                style    = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-            )
+            Row(
+                modifier              = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                // Título con el nombre de la mascota
+                Text(
+                    text  = "${pet?.name ?: "Furry"} Schedule",
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Button(
+                    onClick = { navController.navigate(Routes.addEvent(petId = petId)) },
+                    colors  = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20))
+                ) {
+                    Text("+ Event", color = Color.White)
+                }
+            }
 
             if (events.isEmpty()) {
                 Box(
@@ -70,7 +93,6 @@ fun PetScheduleScreen(
                     Text("No events yet for this furry", color = Color.Gray)
                 }
             } else {
-                // LazyColumn sin verticalScroll anidado — gestiona su propio scroll
                 LazyColumn(
                     modifier            = Modifier.fillMaxSize(),
                     contentPadding      = PaddingValues(horizontal = 24.dp, vertical = 8.dp),

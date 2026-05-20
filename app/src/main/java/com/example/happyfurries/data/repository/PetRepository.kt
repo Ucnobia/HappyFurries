@@ -35,7 +35,7 @@ class PetRepository(
     suspend fun insertPet(pet: PetEntity) {
         try {
             val petFromServer = api.createPet(pet.toApiModel())
-            // Guardo la que devuelve el servidor (tiene el ID real asignado)
+            // Guardo la que devuelve el servidor
             petDao.insertPet(petFromServer.toEntity())
         } catch (e: Exception) {
             // Si falla la red, la guardo solo en local
@@ -54,16 +54,6 @@ class PetRepository(
         }
     }
 
-    // Borra una mascota del servidor y de Room
-    suspend fun deletePet(pet: PetEntity) {
-        try {
-            api.deletePet(pet.id)
-            petDao.deletePet(pet)
-        } catch (e: Exception) {
-            // Si falla la red, borro solo en local
-            petDao.deletePet(pet)
-        }
-    }
 
     // Busca una mascota por ID en Room (ya la tenemos en local)
     suspend fun getPetById(id: Int): PetEntity? = petDao.getPetById(id)

@@ -37,8 +37,8 @@ class MainActivity : ComponentActivity() {
         eventViewModel = EventViewModel(eventRepository)
 
         // Compruebo si es la primera vez que se abre la app
-        // SharedPreferences guarda datos simples de forma persistente
-        // entre sesiones — como un pequeño fichero de configuración
+        // SharedPreferences guarda datos simples
+        // entre sesiones — como un fichero de configuración
         val prefs       = getSharedPreferences("happy_furries_prefs", MODE_PRIVATE)
         val isFirstTime = prefs.getBoolean("is_first_time", true)
 
@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     isFirstTime    = isFirstTime,
                     onFirstTimeComplete = {
                         // Cuando el usuario guarda su primera mascota
-                        // marcamos que ya no es la primera vez
+                        // marca que ya no es la primera vez
                         prefs.edit().putBoolean("is_first_time", false).apply()
                     }
                 )

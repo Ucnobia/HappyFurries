@@ -48,14 +48,4 @@ class PetViewModel(
             onFinished?.invoke()
         }
     }
-
-    // Borra una mascota y recarga la lista
-    // El repositorio también borra sus eventos asociados en el backend
-    fun deletePet(pet: PetEntity, onFinished: (() -> Unit)? = null) {
-        viewModelScope.launch {
-            petRepository.deletePet(pet)
-            loadPets()
-            onFinished?.invoke()
-        }
-    }
 }
