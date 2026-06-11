@@ -26,4 +26,7 @@ object Routes {
         val p = petId?.toString() ?: ""
         return "add_event?date=$d&petId=$p"
     }
+    // Editar evento — recibe  eventId como path param
+    const val EDIT_EVENT = "edit_event/{eventId}"
+    fun editEvent(eventId: Int) = "edit_event/$eventId"
 }

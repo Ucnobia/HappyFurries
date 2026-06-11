@@ -5,8 +5,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -83,8 +86,10 @@ fun DayView(
                         colors   = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
                         Row(
-                            modifier              = Modifier.fillMaxWidth().padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            modifier          = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(event.time, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
@@ -93,8 +98,19 @@ fun DayView(
                                     Text(event.description, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                                 }
                             }
-                            TextButton(onClick = { eventViewModel.deleteEvent(event) }) {
-                                Text("Delete", color = MaterialTheme.colorScheme.error)
+                            IconButton(onClick = { navController.navigate(Routes.editEvent(event.id)) }) {
+                                Icon(
+                                    imageVector        = Icons.Outlined.Edit,
+                                    contentDescription = "Edit event",
+                                    tint               = Color(0xFF1B5E20)
+                                )
+                            }
+                            IconButton(onClick = { eventViewModel.deleteEvent(event) }) {
+                                Icon(
+                                    imageVector        = Icons.Outlined.Delete,
+                                    contentDescription = "Delete event",
+                                    tint               = MaterialTheme.colorScheme.error
+                                )
                             }
                         }
                     }

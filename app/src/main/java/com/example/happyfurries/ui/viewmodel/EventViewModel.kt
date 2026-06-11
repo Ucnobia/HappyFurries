@@ -52,6 +52,15 @@ class EventViewModel(
         }
     }
 
+    // Actualiza un evento y recarga lista correspondiente
+    fun updateEvent(event: EventEntity, onDone: () -> Unit = {}) {
+        viewModelScope.launch {
+            repository.updateEvent(event)
+            loadEventsForDate(LocalDate.parse(event.date))
+            onDone()
+        }
+    }
+
     // Borra un evento y recarga los del día correspondiente
     fun deleteEvent(event: EventEntity, onDone: () -> Unit = {}) {
         viewModelScope.launch {

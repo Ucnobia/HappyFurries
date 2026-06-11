@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.happyfurries.ui.event.AddEventScreen
+import com.example.happyfurries.ui.event.EditEventScreen
 import com.example.happyfurries.ui.viewmodel.PetViewModel
 import com.example.happyfurries.ui.viewmodel.EventViewModel
 import com.example.happyfurries.ui.pet.AddPetScreen
@@ -127,6 +128,22 @@ fun AppNavHost(
                 petViewModel   = petViewModel,
                 initialDate    = date,
                 initialPetId   = petId,
+                onSaved        = { navController.popBackStack() },
+                onBack         = { navController.popBackStack() }
+            )
+        }
+        // EditEvent — recibe el eventId como path param
+        composable(
+            route     = Routes.EDIT_EVENT,
+            arguments = listOf(
+                navArgument("eventId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getInt("eventId") ?: 0
+            EditEventScreen(
+                eventId        = eventId,
+                eventViewModel = eventViewModel,
+                petViewModel   = petViewModel,
                 onSaved        = { navController.popBackStack() },
                 onBack         = { navController.popBackStack() }
             )

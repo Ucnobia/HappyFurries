@@ -49,6 +49,10 @@ interface ApiService {
     @POST("events")
     suspend fun createEvent(@Body event: EventApiModel): EventApiModel
 
+    // Actualiza un evento existente → PUT /events/1
+    @PUT("events/{id}")
+    suspend fun updateEvent(@Path("id") id: Int, @Body event: EventApiModel): EventApiModel
+
     // Borra un evento → DELETE /events/1
     @DELETE("events/{id}")
     suspend fun deleteEvent(@Path("id") id: Int)

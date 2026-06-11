@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -120,6 +122,26 @@ fun PetScheduleScreen(
                                         color = Color.Gray
                                     )
                                 }
+                            }
+                            // Icono editar
+                            IconButton(
+                                onClick = { navController.navigate(Routes.editEvent(event.id)) }
+                            ) {
+                                Icon(
+                                    imageVector        = Icons.Outlined.Edit,
+                                    contentDescription = "Edit event",
+                                    tint               = Color(0xFF1B5E20)
+                                )
+                            }
+                            // Icono eliminar
+                            IconButton(
+                                onClick = { eventViewModel.deleteEvent(event) }
+                            ) {
+                                Icon(
+                                    imageVector        = Icons.Outlined.Delete,
+                                    contentDescription = "Delete event",
+                                    tint               = MaterialTheme.colorScheme.error
+                                )
                             }
                         }
                     }
