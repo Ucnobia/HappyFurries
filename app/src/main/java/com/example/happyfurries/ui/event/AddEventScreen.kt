@@ -18,6 +18,7 @@ import com.example.happyfurries.data.entities.EventEntity
 import com.example.happyfurries.ui.AppBackground
 import com.example.happyfurries.ui.viewmodel.EventViewModel
 import com.example.happyfurries.ui.viewmodel.PetViewModel
+import java.time.LocalDate
 
 // Pantalla para crear un nuevo evento.
 // Recibe una fecha opcional (si se abre desde el calendario)
@@ -38,6 +39,7 @@ fun AddEventScreen(
     var description by remember { mutableStateOf("") }
     var selectedPetId by remember { mutableStateOf(initialPetId) }
     var expanded    by remember { mutableStateOf(false) }
+    var showFormatError by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         petViewModel.loadPets()
@@ -54,6 +56,7 @@ fun AddEventScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 56.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -166,9 +169,24 @@ fun AddEventScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Validaciones de formato
+            val dateRegex = Regex("""^\d{4}-\d{2}-\d{2}$""")
+            val timeRegex = Regex("""^\d{2}:\d{2}$""")
+
             Button(
                 onClick = {
                     if (title.isBlank() || date.isBlank() || time.isBlank()) return@Button
+                    // Validar formato antes de guardar
+                    if (!dateRegex.matches(date.trim()) || !timeRegex.matches(time.trim())) {
+                        showFormatError = true
+                        return@Button
+                    }
+                    // Validar que la fecha no esté en el pasado
+                    val parsedDate = try { LocalDate.parse(date.trim()) } catch (e: Exception) { null }
+                    if (parsedDate == null || parsedDate.isBefore(LocalDate.now())) {
+                        showFormatError = true
+                        return@Button
+                    }
 
                     val newEvent = EventEntity(
                         id          = 0,
@@ -184,6 +202,15 @@ fun AddEventScreen(
                 colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20))
             ) {
                 Text("Save event", color = Color.White)
+            }
+
+            // Mensaje de error de validación
+            if (showFormatError) {
+                Text(
+                    text  = "Check the date (YYYY-MM-DD, not in the past) and time (HH:mm)",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))

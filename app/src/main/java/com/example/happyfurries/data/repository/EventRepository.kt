@@ -9,14 +9,14 @@ import com.example.happyfurries.data.network.toEntity
 // Igual que PetRepository pero para eventos.
 // Sincroniza con el backend y guarda en Room como copia local.
 
-class EventRepository(
+open class EventRepository(
     private val eventDao: EventDao
 ) {
     private val api = ApiClient.service
 
     // Pide los eventos al servidor filtrando por mascota y/o fecha
     // Si el servidor falla devuelvo lo que tenga en Room
-    suspend fun getEventsByDate(date: String): List<EventEntity> {
+    open suspend fun getEventsByDate(date: String): List<EventEntity> {
         return try {
             val eventsFromServer = api.getEvents(date = date)
             eventsFromServer.forEach { eventDao.insertEvent(it.toEntity()) }
@@ -27,7 +27,7 @@ class EventRepository(
     }
 
     // Pide los eventos de una mascota concreta
-    suspend fun getEventsByPet(petId: Int): List<EventEntity> {
+    open suspend fun getEventsByPet(petId: Int): List<EventEntity> {
         return try {
             val eventsFromServer = api.getEvents(petId = petId)
             eventsFromServer.forEach { eventDao.insertEvent(it.toEntity()) }
@@ -38,7 +38,7 @@ class EventRepository(
     }
 
     // Pide eventos filtrando por mascota y fecha a la vez
-    suspend fun getEventsByPetAndDate(petId: Int, date: String): List<EventEntity> {
+    open suspend fun getEventsByPetAndDate(petId: Int, date: String): List<EventEntity> {
         return try {
             val eventsFromServer = api.getEvents(petId = petId, date = date)
             eventsFromServer.forEach { eventDao.insertEvent(it.toEntity()) }
@@ -48,8 +48,19 @@ class EventRepository(
         }
     }
 
+    // Pide TODOS los eventos del servidor (sin filtro)
+    open suspend fun getAllEvents(): List<EventEntity> {
+        return try {
+            val eventsFromServer = api.getEvents()
+            eventsFromServer.forEach { eventDao.insertEvent(it.toEntity()) }
+            eventDao.getAllEvents()
+        } catch (e: Exception) {
+            eventDao.getAllEvents()
+        }
+    }
+
     // Crea un evento en el servidor y lo guarda en Room
-    suspend fun insertEvent(event: EventEntity) {
+    open suspend fun insertEvent(event: EventEntity) {
         try {
             val eventFromServer = api.createEvent(event.toApiModel())
             eventDao.insertEvent(eventFromServer.toEntity())
@@ -59,7 +70,7 @@ class EventRepository(
     }
 
     // Actualiza un evento en el servidor y Room
-    suspend fun updateEvent(event: EventEntity) {
+    open suspend fun updateEvent(event: EventEntity) {
         try {
             api.updateEvent(event.id, event.toApiModel())
             eventDao.updateEvent(event)
@@ -69,7 +80,7 @@ class EventRepository(
     }
 
     // Borra un evento del servidor y de Room
-    suspend fun deleteEvent(event: EventEntity) {
+    open suspend fun deleteEvent(event: EventEntity) {
         try {
             api.deleteEvent(event.id)
             eventDao.deleteEvent(event)

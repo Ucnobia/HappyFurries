@@ -21,6 +21,9 @@ interface EventDao {
     @Query("SELECT * FROM events WHERE date = :date ORDER BY time")
     suspend fun getEventsByDate(date: String): List<EventEntity>
 
+    @Query("SELECT * FROM events ORDER BY date, time")
+    suspend fun getAllEvents(): List<EventEntity>
+
     @Query("SELECT * FROM events WHERE petId = :petId AND date = :date ORDER BY time")
     suspend fun getEventsByPetAndDate(petId: Int, date: String): List<EventEntity>
 }

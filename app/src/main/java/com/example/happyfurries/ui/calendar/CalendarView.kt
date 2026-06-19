@@ -32,7 +32,8 @@ fun CalendarView(
     onMonthChange: (YearMonth) -> Unit
 ) {
     val days = state.currentMonth.getDaysForCalendar()
-    val events = eventViewModel.events.collectAsState().value
+    // Lee todos los eventos para pintar puntos en cualquier día del calendario
+    val allEvents = eventViewModel.allEvents.collectAsState().value
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
@@ -57,19 +58,24 @@ fun CalendarView(
         // Grid con los días del mes
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
-            modifier = Modifier.padding(horizontal = 8.dp)
+            userScrollEnabled = false,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(280.dp)
+                .padding(horizontal = 8.dp)
         ) {
             items(days) { date ->
                 val clickedMonth    = YearMonth.from(date)
                 val currentMonth    = state.currentMonth
                 val isCurrentMonth  = clickedMonth == currentMonth
-                // Compruebo si hay algún evento en ese día usando el ViewModel
-                val hasEvents       = events.any { it.date == date.toString() }
+                // Compruebo si hay algún evento en ese día usando TODOS los eventos
+                val hasEvents       = allEvents.any { it.date == date.toString() }
 
                 Column(
                     modifier = Modifier
-                        .aspectRatio(1f)
-                        .padding(4.dp)
+                        .height(44.dp)
+                        .fillMaxWidth()
+                        .padding(2.dp)
                         .clip(CircleShape)
                         .background(
                             if (date == state.selectedDate)

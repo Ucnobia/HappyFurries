@@ -6,18 +6,28 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +44,7 @@ import com.example.happyfurries.ui.AppBackground
 import com.example.happyfurries.ui.calendar.Calendar
 import com.example.happyfurries.ui.viewmodel.EventViewModel
 import com.example.happyfurries.ui.viewmodel.PetViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
@@ -43,10 +54,13 @@ fun MainScreen(
 ) {
     LaunchedEffect(Unit) {
         petViewModel.loadPets()
+        eventViewModel.loadUpcomingEvents()
+        eventViewModel.loadAllEventsForCalendar()
     }
 
-    val events = eventViewModel.events.collectAsState().value
-    val pets   = petViewModel.pets.collectAsState().value
+    val events      = eventViewModel.events.collectAsState().value
+    val pets        = petViewModel.pets.collectAsState().value
+    val searchQuery = eventViewModel.searchQuery.collectAsState().value
 
     AppBackground {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -73,10 +87,43 @@ fun MainScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Tarjetas de eventos del día
-            UpcomingEventsSection(events)
+            // BARRA DE BÚSQUEDA
+            TextField(
+                value = searchQuery,
+                onValueChange = { eventViewModel.updateSearchQuery(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                placeholder = { Text("Search events or pets...") },
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { eventViewModel.updateSearchQuery("") }) {
+                            Icon(Icons.Default.Clear, contentDescription = null)
+                        }
+                    }
+                },
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White
+                )
+            )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Lista de eventos próximos — ocupa el espacio restante con scroll,
+            // nunca empuja la barra de mascotas
+            Box(modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+            ) {
+                UpcomingEventsSection(
+                    events = events,
+                    pets = pets,
+                    searchQuery = searchQuery
+                )
+            }
 
             // Barra inferior verde con las mascotas
             PetBottomBar(
@@ -92,70 +139,146 @@ fun MainScreen(
 
 @Composable
 fun UpcomingEventsSection(
-    events: List<com.example.happyfurries.data.entities.EventEntity>
+    events: List<com.example.happyfurries.data.entities.EventEntity>,
+    pets: List<PetEntity> = emptyList(),
+    searchQuery: String = ""
 ) {
-    Column(
+    // Filtrar eventos por búsqueda (título del evento o nombre de la mascota)
+    val filteredEvents = if (searchQuery.isBlank()) {
+        events
+    } else {
+        val lowerQuery = searchQuery.lowercase()
+        events.filter { event ->
+            val matchesTitle = event.title.lowercase().contains(lowerQuery)
+            val petName = pets.find { it.id == event.petId }?.name?.lowercase() ?: ""
+            val matchesPet = petName.contains(lowerQuery)
+            matchesTitle || matchesPet
+        }
+    }
+
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
     ) {
-        if (events.isEmpty()) {
+        if (filteredEvents.isEmpty()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors   = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
+                    modifier         = Modifier.fillMaxWidth().padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No events for today", color = Color.Gray)
+                    Text(
+                        if (searchQuery.isBlank()) "No upcoming events" else "No events found",
+                        color = Color.Gray
+                    )
                 }
             }
         } else {
-            events.forEach { event ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+            val listState = rememberLazyListState()
+            val scope = rememberCoroutineScope()
+
+            // ¿Hay items ocultos arriba o abajo?
+            val canScrollUp by remember {
+                derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
+            }
+            val canScrollDown by remember {
+                derivedStateOf {
+                    val layoutInfo = listState.layoutInfo
+                    val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()
+                    lastVisible == null || lastVisible.index < layoutInfo.totalItemsCount - 1
+                }
+            }
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(filteredEvents) { event ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors   = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .background(Color(0xFF4CAF50), CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text  = event.time,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.Gray
+                        Row(
+                            modifier          = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .background(Color(0xFF4CAF50), CircleShape)
                             )
-                            Text(
-                                text     = event.title,
-                                style    = MaterialTheme.typography.titleMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            if (!event.description.isNullOrBlank()) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text     = event.description,
-                                    style    = MaterialTheme.typography.bodySmall,
-                                    color    = Color.Gray,
+                                    text  = "${event.date} · ${event.time}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Gray
+                                )
+                                Text(
+                                    text     = event.title,
+                                    style    = MaterialTheme.typography.titleMedium,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
+                                if (!event.description.isNullOrBlank()) {
+                                    Text(
+                                        text     = event.description,
+                                        style    = MaterialTheme.typography.bodySmall,
+                                        color    = Color.Gray,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
                     }
                 }
+            }
+
+            // Flecha arriba — solo si hay contenido oculto por encima
+            if (canScrollUp) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowUp,
+                    contentDescription = "Scroll up",
+                    tint = Color(0xFF1B5E20),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.8f))
+                        .clickable {
+                            scope.launch {
+                                val target = (listState.firstVisibleItemIndex - 2).coerceAtLeast(0)
+                                listState.animateScrollToItem(target)
+                            }
+                        }
+                )
+            }
+
+            // Flecha abajo — solo si hay contenido oculto por debajo
+            if (canScrollDown) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Scroll down",
+                    tint = Color(0xFF1B5E20),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.8f))
+                        .clickable {
+                            scope.launch {
+                                val target = (listState.firstVisibleItemIndex + 2)
+                                    .coerceAtMost(filteredEvents.size - 1)
+                                listState.animateScrollToItem(target)
+                            }
+                        }
+                )
             }
         }
     }
@@ -169,7 +292,6 @@ fun PetBottomBar(
     onScheduleClick: (PetEntity) -> Unit,
     onAddPetClick: () -> Unit
 ) {
-    // Margen abajo para que se vea el fondo naranja debajo de la barra
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -193,7 +315,6 @@ fun PetBottomBar(
                 )
             }
 
-            // Botón añadir mascota
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -213,8 +334,6 @@ fun PetBottomBar(
                         modifier           = Modifier.size(28.dp)
                     )
                 }
-                //Espacio del mismo tamaño que los botones de las mascotas
-                //Para que quede alineado
                 Spacer(modifier = Modifier.height(20.dp))
             }
         }
@@ -232,7 +351,6 @@ fun PetBottomItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Círculo blanco con el nombre de la mascota y borde de su color
         Box(
             modifier = Modifier
                 .size(64.dp)
@@ -252,7 +370,6 @@ fun PetBottomItem(
             )
         }
 
-        // Tres iconos debajo del círculo
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Icon(
                 imageVector        = Icons.Default.Edit,

@@ -35,7 +35,10 @@ fun Calendar(
             date           = selected,
             eventViewModel = eventViewModel,
             navController  = navController,
-            onBack         = { state = state.copy(selectedDate = null) }
+            onBack = {
+                state = state.copy(selectedDate = null)
+                eventViewModel.loadUpcomingEvents()
+            }
         )
         return
     }

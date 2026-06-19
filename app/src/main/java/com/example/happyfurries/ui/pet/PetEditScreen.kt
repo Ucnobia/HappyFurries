@@ -55,6 +55,7 @@ fun PetEditScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(58.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),

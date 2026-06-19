@@ -18,6 +18,7 @@ import com.example.happyfurries.data.entities.EventEntity
 import com.example.happyfurries.ui.AppBackground
 import com.example.happyfurries.ui.viewmodel.EventViewModel
 import com.example.happyfurries.ui.viewmodel.PetViewModel
+import java.time.LocalDate
 
 @Composable
 fun EditEventScreen(
@@ -37,6 +38,7 @@ fun EditEventScreen(
     var description   by remember(event) { mutableStateOf(event?.description ?: "") }
     var selectedPetId by remember(event) { mutableStateOf(event?.petId) }
     var expanded      by remember { mutableStateOf(false) }
+    var showFormatError by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { petViewModel.loadPets() }
 
@@ -51,6 +53,7 @@ fun EditEventScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 56.dp),
             verticalArrangement    = Arrangement.spacedBy(12.dp),
@@ -139,10 +142,31 @@ fun EditEventScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Validaciones de formato
+            val dateRegex = Regex("""^\d{4}-\d{2}-\d{2}$""")
+            val timeRegex = Regex("""^\d{2}:\d{2}$""")
+
             Button(
                 onClick = {
                     if (title.isBlank() || date.isBlank() || time.isBlank()) return@Button
                     if (event == null) return@Button
+                    // Validar formato antes de guardar
+                    if (!dateRegex.matches(date.trim()) || !timeRegex.matches(time.trim())) {
+                        showFormatError = true
+                        return@Button
+                    }
+                    // Validar que la fecha tenga un valor válido
+                    val parsedDate = try { LocalDate.parse(date.trim()) } catch (e: Exception) { null }
+                    if (parsedDate == null) {
+                        showFormatError = true
+                        return@Button
+                    }
+                    // Solo bloqueamos fechas pasadas si el usuario cambió la fecha original
+                    val dateChanged = date.trim() != event.date
+                    if (dateChanged && parsedDate.isBefore(LocalDate.now())) {
+                        showFormatError = true
+                        return@Button
+                    }
 
                     val updated = event.copy(
                         title       = title.trim(),
@@ -157,6 +181,15 @@ fun EditEventScreen(
                 colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20))
             ) {
                 Text("Save changes", color = Color.White)
+            }
+
+            // Mensaje de error de validación
+            if (showFormatError) {
+                Text(
+                    text  = "Check the date (YYYY-MM-DD, not in the past) and time (HH:mm)",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
